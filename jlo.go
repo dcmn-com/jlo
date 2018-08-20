@@ -50,8 +50,6 @@ const (
 
 	// default log level used for initialization of global logger and all additional ones
 	defaultLogLevel = InfoLevel
-	// RFC3339 time format "2006-01-02T15:04:05.999999999Z07:00"
-	timeFormat = time.RFC3339Nano
 )
 
 // Logger logs json formatted messages to a certain output destination
@@ -59,7 +57,7 @@ type Logger struct {
 	FieldKeyMsg   string
 	FieldKeyLevel string
 	FieldKeyTime  string
-	fields        map[string]string
+	fields        map[string]interface{}
 	mu            sync.RWMutex
 	logLevel      LogLevel
 	now           func() time.Time
@@ -76,7 +74,7 @@ func NewLogger(out io.Writer) *Logger {
 		FieldKeyMsg:   FieldKeyMsg,
 		FieldKeyLevel: FieldKeyLevel,
 		FieldKeyTime:  FieldKeyTime,
-		fields:        make(map[string]string),
+		fields:        make(map[string]interface{}),
 		logLevel:      defaultLogLevel,
 		now:           func() time.Time { return time.Now().UTC() },
 		out:           out,
@@ -141,11 +139,11 @@ func (l *Logger) SetLogLevel(level LogLevel) {
 
 // WithField returns a copy of the logger with a custom field set, which will be
 // included in all subsequent logs
-func (l *Logger) WithField(key, value string) *Logger {
+func (l *Logger) WithField(key string, value interface{}) *Logger {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
-	fields := map[string]string{
+	fields := map[string]interface{}{
 		key: value,
 	}
 
@@ -181,8 +179,8 @@ func (l *Logger) generateLogEntry(level LogLevel, format string, args ...interfa
 		msg = format
 	}
 
-	data := map[string]string{
-		l.FieldKeyTime:  l.now().Format(timeFormat),
+	data := map[string]interface{}{
+		l.FieldKeyTime:  l.now(),
 		l.FieldKeyLevel: level.String(),
 		l.FieldKeyMsg:   msg,
 	}
