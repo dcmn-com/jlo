@@ -13,7 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const testTime = "2018-08-02T21:48:56Z"
+const testTime = "2018-08-02T21:48:56.856339554Z"
 
 type LogFunc func(string, ...interface{})
 
@@ -296,14 +296,19 @@ func Test_Logger_WithField(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	l := NewLogger(buf)
 	l.now = getTestTime
-	l.WithField("@request_id", "e44c2a9").Infof("I'm real")
+	l.WithField("@request_id", "e44c2a9").
+		WithField("@version", 2.1).
+		WithField("@revision", 6).
+		Infof("I'm real")
 
 	// check that field is in logs
 	assert.JSONEq(t, fmt.Sprintf(`{
+		"@level": "info",
+		"@message": "I'm real",
+		"@timestamp": "%s",
 		"@request_id": "e44c2a9",
-		"@message":    "I'm real",
-		"@level":      "info",
-		"@timestamp":  "%s"
+		"@revision": 6,
+		"@version": 2.1
 	}`, testTime), buf.String())
 
 	// check that original logger is unaffected
@@ -493,7 +498,7 @@ func Test_Logger_SetLogLevel(t *testing.T) {
 }
 
 func getTestTime() time.Time {
-	t, _ := time.Parse(time.RFC3339, testTime)
+	t, _ := time.Parse(time.RFC3339Nano, testTime)
 	return t
 }
 
