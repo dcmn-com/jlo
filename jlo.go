@@ -72,21 +72,15 @@ var DefaultLogger = NewLogger(os.Stdout)
 
 // NewLogger creates a new logger which will write to the passed in io.Writer
 func NewLogger(out io.Writer) *Logger {
-	return newLogger(out, func() time.Time { return time.Now().UTC() })
-}
-
-// newLogger allows to define a custom function for retrieving the current time
-func newLogger(out io.Writer, now func() time.Time) *Logger {
-	l := &Logger{
+	return &Logger{
 		FieldKeyMsg:   FieldKeyMsg,
 		FieldKeyLevel: FieldKeyLevel,
 		FieldKeyTime:  FieldKeyTime,
 		fields:        make(map[string]string),
 		logLevel:      defaultLogLevel,
-		now:           now,
+		now:           func() time.Time { return time.Now().UTC() },
 		out:           out,
 	}
-	return l
 }
 
 // Fatalf logs a message on FatalLevel
@@ -159,7 +153,8 @@ func (l *Logger) WithField(key, value string) *Logger {
 		fields[k] = v
 	}
 
-	clone := newLogger(l.out, l.now)
+	clone := NewLogger(l.out)
+	clone.now = l.now
 	clone.fields = fields
 	return clone
 }

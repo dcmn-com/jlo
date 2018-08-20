@@ -52,7 +52,8 @@ func Test_Logger_Debugf(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := newLogger(buf, getTestTime)
+			l := NewLogger(buf)
+			l.now = getTestTime
 			l.SetLogLevel(DebugLevel)
 
 			l.Debugf(test.String, test.Args...)
@@ -87,7 +88,8 @@ func Test_Logger_Infof(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := newLogger(buf, getTestTime)
+			l := NewLogger(buf)
+			l.now = getTestTime
 			l.SetLogLevel(InfoLevel)
 
 			l.Infof(test.String, test.Args...)
@@ -122,7 +124,8 @@ func Test_Logger_Warnf(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := newLogger(buf, getTestTime)
+			l := NewLogger(buf)
+			l.now = getTestTime
 			l.SetLogLevel(WarningLevel)
 
 			l.Warnf(test.String, test.Args...)
@@ -157,7 +160,8 @@ func Test_Logger_Errorf(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := newLogger(buf, getTestTime)
+			l := NewLogger(buf)
+			l.now = getTestTime
 			l.SetLogLevel(InfoLevel)
 
 			l.Errorf(test.String, test.Args...)
@@ -192,7 +196,8 @@ func Test_Logger_Fatalf(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := newLogger(buf, getTestTime)
+			l := NewLogger(buf)
+			l.now = getTestTime
 			l.SetLogLevel(FatalLevel)
 
 			l.Fatalf(test.String, test.Args...)
@@ -208,7 +213,8 @@ func Test_Logger_Fatalf(t *testing.T) {
 
 func Test_Logger_Infof_EnsureNewlineDelimitedJSON(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
-	l := newLogger(buf, getTestTime)
+	l := NewLogger(buf)
+	l.now = getTestTime
 	l.Infof("I'm real")
 	assert.True(t, strings.HasSuffix(buf.String(), "}\n"))
 }
@@ -265,7 +271,8 @@ func Test_Logger_Infof_SpecialCharacterUse(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := newLogger(buf, getTestTime)
+			l := NewLogger(buf)
+			l.now = getTestTime
 
 			l.Infof(test.String, test.Args...)
 
@@ -311,7 +318,8 @@ func Test_Logger_WithField(t *testing.T) {
 
 func Test_Logger_WithField_EnsureNoChangeWhenIgnoringReturnValue(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
-	l := newLogger(buf, getTestTime)
+	l := NewLogger(buf)
+	l.now = getTestTime
 	l.WithField("WithField", "will only be set in returned logger")
 	l.Infof("I'm real")
 
@@ -462,7 +470,8 @@ func Test_Logger_SetLogLevel(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := newLogger(buf, getTestTime)
+			l := NewLogger(buf)
+			l.now = getTestTime
 			l.SetLogLevel(test.SetLogLevel)
 
 			test.GetLogFunc(l)("I'm real")
