@@ -1,3 +1,4 @@
+// Light-weight json logging
 package jlo
 
 import (
@@ -9,35 +10,8 @@ import (
 	"time"
 )
 
-const (
-	// FieldKeyLevel is the log level log field name
-	FieldKeyLevel = "@level"
-	// FieldKeyMsg is the log message log field name
-	FieldKeyMsg = "@message"
-	// FieldKeyTime is the time log field name
-	FieldKeyTime = "@timestamp"
-
-	// default log level used for initialization of global logger and all additional ones
-	defaultLogLevel = InfoLevel
-	// RFC3339 time format "2006-01-02T15:04:05.999999999Z07:00"
-	timeFormat = time.RFC3339Nano
-)
-
 // LogLevel represents a log level used by Logger type
 type LogLevel int
-
-const (
-	// DebugLevel is the most verbose output and logs messages on all levels
-	DebugLevel LogLevel = iota
-	// InfoLevel logs messages on all levels except the DebugLevel
-	InfoLevel
-	// WarningLevel logs messages on all levels except DebugLevel and InfoLevel
-	WarningLevel
-	// ErrorLevel logs messages on ErrorLevel and FatalLevel
-	ErrorLevel
-	// FatalLevel logs messages on FatalLevel
-	FatalLevel
-)
 
 // String returns a string representation of the log level
 func (l LogLevel) String() string {
@@ -54,6 +28,31 @@ func (l LogLevel) String() string {
 		return "fatal"
 	}
 }
+
+const (
+	// DebugLevel is the most verbose output and logs messages on all levels
+	DebugLevel LogLevel = iota
+	// InfoLevel logs messages on all levels except the DebugLevel
+	InfoLevel
+	// WarningLevel logs messages on all levels except DebugLevel and InfoLevel
+	WarningLevel
+	// ErrorLevel logs messages on ErrorLevel and FatalLevel
+	ErrorLevel
+	// FatalLevel logs messages on FatalLevel
+	FatalLevel
+
+	// FieldKeyLevel is the log level log field name
+	FieldKeyLevel = "@level"
+	// FieldKeyMsg is the log message log field name
+	FieldKeyMsg = "@message"
+	// FieldKeyTime is the time log field name
+	FieldKeyTime = "@timestamp"
+
+	// default log level used for initialization of global logger and all additional ones
+	defaultLogLevel = InfoLevel
+	// RFC3339 time format "2006-01-02T15:04:05.999999999Z07:00"
+	timeFormat = time.RFC3339Nano
+)
 
 // Logger logs json formatted messages to a certain output destination
 type Logger struct {
@@ -98,7 +97,7 @@ func (l *Logger) Fatalf(format string, args ...interface{}) {
 	l.log(FatalLevel, format, args...)
 }
 
-// Errorf log a messages on ErrorLevel
+// Errorf logs a messages on ErrorLevel
 func (l *Logger) Errorf(format string, args ...interface{}) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -108,7 +107,7 @@ func (l *Logger) Errorf(format string, args ...interface{}) {
 	}
 }
 
-// Warnf log a messages on WarningLevel
+// Warnf logs a messages on WarningLevel
 func (l *Logger) Warnf(format string, args ...interface{}) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -118,7 +117,7 @@ func (l *Logger) Warnf(format string, args ...interface{}) {
 	}
 }
 
-// Infof log a messages on InfoLevel
+// Infof logs a messages on InfoLevel
 func (l *Logger) Infof(format string, args ...interface{}) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -128,7 +127,7 @@ func (l *Logger) Infof(format string, args ...interface{}) {
 	}
 }
 
-// Debugf log a messages on DebugLevel
+// Debugf logs a messages on DebugLevel
 func (l *Logger) Debugf(format string, args ...interface{}) {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
@@ -177,6 +176,8 @@ func (l *Logger) log(level LogLevel, format string, args ...interface{}) {
 	l.out.Write(entry)
 }
 
+// generateLogEntry generates a log entry by gathering all field data and marshal
+// everthing to json format
 func (l *Logger) generateLogEntry(level LogLevel, format string, args ...interface{}) []byte {
 	var msg string
 	if len(args) > 0 {

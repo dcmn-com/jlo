@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -545,4 +546,118 @@ func benchmarkLoggerWithField(b *testing.B, format string, args ...interface{}) 
 	for i := 0; i < b.N; i++ {
 		l.WithField("I'm", "real").Infof(format, args...)
 	}
+}
+
+func ExampleLogLevel_String() {
+	level := DebugLevel.String()
+	fmt.Println(level)
+	// Output: debug
+}
+
+// Create a new logger logging to stdout
+func ExampleNewLogger() {
+	l := NewLogger(os.Stdout)
+	l.FieldKeyLevel = "lvl"
+	l.FieldKeyMsg = "msg"
+	l.FieldKeyTime = "time"
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.Infof("I'm real")
+	// Output: {"lvl":"info","msg":"I'm real","time":"0001-01-01T00:00:00Z"}
+}
+
+// Create a new logger logging to stdout
+func ExampleNewLogger_customFields() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.Infof("I'm real")
+	// Output: {"@level":"info","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
+}
+
+func ExampleLogger_Debugf() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.SetLogLevel(DebugLevel)
+	l.Debugf("I'm real")
+	// Output: {"@level":"debug","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
+}
+
+func ExampleLogger_Infof() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.Infof("I'm real")
+	// Output: {"@level":"info","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
+}
+
+func ExampleLogger_Warnf() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.Warnf("I'm real")
+	// Output: {"@level":"warning","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
+}
+
+func ExampleLogger_Errorf() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.Errorf("I'm real")
+	// Output: {"@level":"error","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
+}
+
+func ExampleLogger_Fatalf() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.Fatalf("I'm real")
+	// Output: {"@level":"fatal","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
+}
+
+func ExampleLogger_SetLogLevel() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.SetLogLevel(DebugLevel)
+	l.Debugf("I'm real")
+	// Output: {"@level":"debug","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
+}
+
+func ExampleLogger_WithField() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l = l.WithField("@request_id", "aa33ee55")
+	l.Infof("I'm real")
+	// Output: {"@level":"info","@message":"I'm real","@request_id":"aa33ee55","@timestamp":"0001-01-01T00:00:00Z"}
+}
+
+func ExampleLogger_WithField_chaining() {
+	l := NewLogger(os.Stdout)
+
+	// mocking time, ignore this line!
+	l.now = func() time.Time { return time.Time{} }
+
+	l.WithField("@request_id", "aa33ee55").Infof("I'm real")
+	// Output: {"@level":"info","@message":"I'm real","@request_id":"aa33ee55","@timestamp":"0001-01-01T00:00:00Z"}
 }
