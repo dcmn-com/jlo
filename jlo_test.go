@@ -1,14 +1,15 @@
-package jlo
+package jlo_test
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"os"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/dcmn-com/jlo"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -19,16 +20,16 @@ const testTime = "2018-08-02T21:48:56.856339554Z"
 type LogFunc func(string, ...interface{})
 
 func Test_SetLogLevel(t *testing.T) {
-	SetLogLevel(InfoLevel)
+	jlo.SetLogLevel(jlo.InfoLevel)
 	buf := bytes.NewBuffer(nil)
-	infoLogger := NewLogger(buf)
+	infoLogger := jlo.NewLogger(buf)
 
 	infoLogger.Debugf("should not log")
 	assert.Empty(t, buf.String())
 
-	SetLogLevel(DebugLevel)
+	jlo.SetLogLevel(jlo.DebugLevel)
 
-	debugLogger := NewLogger(buf)
+	debugLogger := jlo.NewLogger(buf)
 	debugLogger.Debugf("should log")
 
 	var msg map[string]interface{}
@@ -76,9 +77,9 @@ func Test_Logger_Debugf(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := NewLogger(buf)
-			l.now = getTestTime
-			l.SetLogLevel(DebugLevel)
+			l := jlo.NewLogger(buf)
+			l.Now = getTestTime
+			l.SetLogLevel(jlo.DebugLevel)
 
 			l.Debugf(test.String, test.Args...)
 
@@ -112,9 +113,9 @@ func Test_Logger_Infof(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := NewLogger(buf)
-			l.now = getTestTime
-			l.SetLogLevel(InfoLevel)
+			l := jlo.NewLogger(buf)
+			l.Now = getTestTime
+			l.SetLogLevel(jlo.InfoLevel)
 
 			l.Infof(test.String, test.Args...)
 
@@ -148,9 +149,9 @@ func Test_Logger_Warnf(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := NewLogger(buf)
-			l.now = getTestTime
-			l.SetLogLevel(WarningLevel)
+			l := jlo.NewLogger(buf)
+			l.Now = getTestTime
+			l.SetLogLevel(jlo.WarningLevel)
 
 			l.Warnf(test.String, test.Args...)
 
@@ -184,9 +185,9 @@ func Test_Logger_Errorf(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := NewLogger(buf)
-			l.now = getTestTime
-			l.SetLogLevel(InfoLevel)
+			l := jlo.NewLogger(buf)
+			l.Now = getTestTime
+			l.SetLogLevel(jlo.InfoLevel)
 
 			l.Errorf(test.String, test.Args...)
 
@@ -220,9 +221,9 @@ func Test_Logger_Fatalf(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := NewLogger(buf)
-			l.now = getTestTime
-			l.SetLogLevel(FatalLevel)
+			l := jlo.NewLogger(buf)
+			l.Now = getTestTime
+			l.SetLogLevel(jlo.FatalLevel)
 
 			l.Fatalf(test.String, test.Args...)
 
@@ -237,8 +238,8 @@ func Test_Logger_Fatalf(t *testing.T) {
 
 func Test_Logger_Infof_EnsureNewlineDelimitedJSON(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
-	l := NewLogger(buf)
-	l.now = getTestTime
+	l := jlo.NewLogger(buf)
+	l.Now = getTestTime
 	l.Infof("I'm real")
 	assert.True(t, strings.HasSuffix(buf.String(), "}\n"))
 }
@@ -295,8 +296,8 @@ func Test_Logger_Infof_SpecialCharacterUse(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := NewLogger(buf)
-			l.now = getTestTime
+			l := jlo.NewLogger(buf)
+			l.Now = getTestTime
 
 			l.Infof(test.String, test.Args...)
 
@@ -318,8 +319,8 @@ func Test_Logger_Infof_SpecialCharacterUse(t *testing.T) {
 
 func Test_Logger_WithField(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
-	l := NewLogger(buf)
-	l.now = getTestTime
+	l := jlo.NewLogger(buf)
+	l.Now = getTestTime
 	l.WithField("@request_id", "e44c2a9").
 		WithField("@version", 2.1).
 		WithField("@revision", 6).
@@ -347,8 +348,8 @@ func Test_Logger_WithField(t *testing.T) {
 
 func Test_Logger_WithField_EnsureNoChangeWhenIgnoringReturnValue(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
-	l := NewLogger(buf)
-	l.now = getTestTime
+	l := jlo.NewLogger(buf)
+	l.Now = getTestTime
 	l.WithField("WithField", "will only be set in returned logger")
 	l.Infof("I'm real")
 
@@ -362,136 +363,136 @@ func Test_Logger_WithField_EnsureNoChangeWhenIgnoringReturnValue(t *testing.T) {
 func Test_Logger_SetLogLevel(t *testing.T) {
 
 	tests := map[string]struct {
-		GetLogFunc  func(l *Logger) LogFunc
-		LogLevel    LogLevel
-		SetLogLevel LogLevel
+		GetLogFunc  func(l *jlo.Logger) LogFunc
+		LogLevel    jlo.LogLevel
+		SetLogLevel jlo.LogLevel
 		Message     string
 	}{
 		"Debug log with DebugLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Debugf
 			},
-			LogLevel:    DebugLevel,
-			SetLogLevel: DebugLevel,
+			LogLevel:    jlo.DebugLevel,
+			SetLogLevel: jlo.DebugLevel,
 			Message:     "I'm real",
 		},
 		"Debug log with InfoLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Debugf
 			},
-			LogLevel:    DebugLevel,
-			SetLogLevel: InfoLevel,
+			LogLevel:    jlo.DebugLevel,
+			SetLogLevel: jlo.InfoLevel,
 			Message:     "",
 		},
 		"Debug log with WarningLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Debugf
 			},
-			LogLevel:    DebugLevel,
-			SetLogLevel: WarningLevel,
+			LogLevel:    jlo.DebugLevel,
+			SetLogLevel: jlo.WarningLevel,
 			Message:     "",
 		},
 		"Debug log with ErrorLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Debugf
 			},
-			LogLevel:    DebugLevel,
-			SetLogLevel: ErrorLevel,
+			LogLevel:    jlo.DebugLevel,
+			SetLogLevel: jlo.ErrorLevel,
 			Message:     "",
 		},
 		"Info log with DebugLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Infof
 			},
-			LogLevel:    InfoLevel,
-			SetLogLevel: DebugLevel,
+			LogLevel:    jlo.InfoLevel,
+			SetLogLevel: jlo.DebugLevel,
 			Message:     "I'm real",
 		},
 		"Info log with InfoLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Infof
 			},
-			LogLevel:    InfoLevel,
-			SetLogLevel: InfoLevel,
+			LogLevel:    jlo.InfoLevel,
+			SetLogLevel: jlo.InfoLevel,
 			Message:     "I'm real",
 		},
 		"Info log with WarningLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Infof
 			},
-			SetLogLevel: WarningLevel,
+			SetLogLevel: jlo.WarningLevel,
 			Message:     "",
 		},
 		"Info log with ErrorLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Infof
 			},
-			LogLevel:    InfoLevel,
-			SetLogLevel: ErrorLevel,
+			LogLevel:    jlo.InfoLevel,
+			SetLogLevel: jlo.ErrorLevel,
 			Message:     "",
 		},
 		"Warning log with DebugLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Warnf
 			},
-			LogLevel:    WarningLevel,
-			SetLogLevel: DebugLevel,
+			LogLevel:    jlo.WarningLevel,
+			SetLogLevel: jlo.DebugLevel,
 			Message:     "I'm real",
 		},
 		"Warning log with InfoLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Warnf
 			},
-			LogLevel:    WarningLevel,
-			SetLogLevel: InfoLevel,
+			LogLevel:    jlo.WarningLevel,
+			SetLogLevel: jlo.InfoLevel,
 			Message:     "I'm real",
 		},
 		"Warning log with WarningLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Warnf
 			},
-			LogLevel:    WarningLevel,
-			SetLogLevel: WarningLevel,
+			LogLevel:    jlo.WarningLevel,
+			SetLogLevel: jlo.WarningLevel,
 			Message:     "I'm real",
 		},
 		"Warning log with ErrorLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Warnf
 			},
-			LogLevel:    WarningLevel,
-			SetLogLevel: ErrorLevel,
+			LogLevel:    jlo.WarningLevel,
+			SetLogLevel: jlo.ErrorLevel,
 			Message:     "",
 		},
 		"Error log with DebugLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Errorf
 			},
-			LogLevel:    ErrorLevel,
-			SetLogLevel: DebugLevel,
+			LogLevel:    jlo.ErrorLevel,
+			SetLogLevel: jlo.DebugLevel,
 			Message:     "I'm real",
 		},
 		"Error log with InfoLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Errorf
 			},
-			LogLevel:    ErrorLevel,
-			SetLogLevel: InfoLevel,
+			LogLevel:    jlo.ErrorLevel,
+			SetLogLevel: jlo.InfoLevel,
 			Message:     "I'm real",
 		},
 		"Error log with WarningLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Errorf
 			},
-			LogLevel:    ErrorLevel,
-			SetLogLevel: WarningLevel,
+			LogLevel:    jlo.ErrorLevel,
+			SetLogLevel: jlo.WarningLevel,
 			Message:     "I'm real",
 		},
 		"Error log with ErrorLevel": {
-			GetLogFunc: func(l *Logger) LogFunc {
+			GetLogFunc: func(l *jlo.Logger) LogFunc {
 				return l.Errorf
 			},
-			LogLevel:    ErrorLevel,
-			SetLogLevel: ErrorLevel,
+			LogLevel:    jlo.ErrorLevel,
+			SetLogLevel: jlo.ErrorLevel,
 			Message:     "I'm real",
 		},
 	}
@@ -499,8 +500,8 @@ func Test_Logger_SetLogLevel(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
-			l := NewLogger(buf)
-			l.now = getTestTime
+			l := jlo.NewLogger(buf)
+			l.Now = getTestTime
 			l.SetLogLevel(test.SetLogLevel)
 
 			test.GetLogFunc(l)("I'm real")
@@ -573,129 +574,15 @@ func Benchmark_Logger_VeryLongString_WithFieldsAndArgs(b *testing.B) {
 }
 
 func benchmarkLogger(b *testing.B, format string, args ...interface{}) {
-	l := NewLogger(ioutil.Discard)
+	l := jlo.NewLogger(ioutil.Discard)
 	for i := 0; i < b.N; i++ {
 		l.Infof(format, args...)
 	}
 }
 
 func benchmarkLoggerWithField(b *testing.B, format string, args ...interface{}) {
-	l := NewLogger(ioutil.Discard)
+	l := jlo.NewLogger(ioutil.Discard)
 	for i := 0; i < b.N; i++ {
 		l.WithField("I'm", "real").Infof(format, args...)
 	}
-}
-
-func ExampleLogLevel_String() {
-	level := DebugLevel.String()
-	fmt.Println(level)
-	// Output: debug
-}
-
-// Create a new logger logging to stdout
-func ExampleNewLogger() {
-	l := NewLogger(os.Stdout)
-	l.FieldKeyLevel = "lvl"
-	l.FieldKeyMsg = "msg"
-	l.FieldKeyTime = "time"
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.Infof("I'm real")
-	// Output: {"lvl":"info","msg":"I'm real","time":"0001-01-01T00:00:00Z"}
-}
-
-// Create a new logger logging to stdout
-func ExampleNewLogger_customFields() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.Infof("I'm real")
-	// Output: {"@level":"info","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
-}
-
-func ExampleLogger_Debugf() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.SetLogLevel(DebugLevel)
-	l.Debugf("I'm real")
-	// Output: {"@level":"debug","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
-}
-
-func ExampleLogger_Infof() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.Infof("I'm real")
-	// Output: {"@level":"info","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
-}
-
-func ExampleLogger_Warnf() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.Warnf("I'm real")
-	// Output: {"@level":"warning","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
-}
-
-func ExampleLogger_Errorf() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.Errorf("I'm real")
-	// Output: {"@level":"error","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
-}
-
-func ExampleLogger_Fatalf() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.Fatalf("I'm real")
-	// Output: {"@level":"fatal","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
-}
-
-func ExampleLogger_SetLogLevel() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.SetLogLevel(DebugLevel)
-	l.Debugf("I'm real")
-	// Output: {"@level":"debug","@message":"I'm real","@timestamp":"0001-01-01T00:00:00Z"}
-}
-
-func ExampleLogger_WithField() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l = l.WithField("@request_id", "aa33ee55")
-	l.Infof("I'm real")
-	// Output: {"@level":"info","@message":"I'm real","@request_id":"aa33ee55","@timestamp":"0001-01-01T00:00:00Z"}
-}
-
-func ExampleLogger_WithField_chaining() {
-	l := NewLogger(os.Stdout)
-
-	// mocking time, ignore this line!
-	l.now = func() time.Time { return time.Time{} }
-
-	l.WithField("@request_id", "aa33ee55").Infof("I'm real")
-	// Output: {"@level":"info","@message":"I'm real","@request_id":"aa33ee55","@timestamp":"0001-01-01T00:00:00Z"}
 }

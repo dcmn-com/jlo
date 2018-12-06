@@ -68,10 +68,10 @@ type Logger struct {
 	FieldKeyMsg   string
 	FieldKeyLevel string
 	FieldKeyTime  string
+	Now           func() time.Time
 	fields        map[string]interface{}
 	mu            sync.RWMutex
 	logLevel      LogLevel
-	now           func() time.Time
 	outMu         sync.Mutex
 	out           io.Writer
 }
@@ -86,10 +86,10 @@ func NewLogger(out io.Writer) *Logger {
 	return &Logger{
 		FieldKeyMsg:   FieldKeyMsg,
 		FieldKeyLevel: FieldKeyLevel,
+		Now:           func() time.Time { return time.Now().UTC() },
 		FieldKeyTime:  FieldKeyTime,
 		fields:        make(map[string]interface{}),
 		logLevel:      logLevel,
-		now:           func() time.Time { return time.Now().UTC() },
 		out:           out,
 	}
 }
@@ -165,7 +165,7 @@ func (l *Logger) WithField(key string, value interface{}) *Logger {
 	}
 
 	clone := NewLogger(l.out)
-	clone.now = l.now
+	clone.Now = l.Now
 	clone.fields = fields
 	return clone
 }
@@ -193,7 +193,7 @@ func (l *Logger) generateLogEntry(level LogLevel, format string, args ...interfa
 	}
 
 	data := map[string]interface{}{
-		l.FieldKeyTime:  l.now(),
+		l.FieldKeyTime:  l.Now(),
 		l.FieldKeyLevel: level.String(),
 		l.FieldKeyMsg:   msg,
 	}
