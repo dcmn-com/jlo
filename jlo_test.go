@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -18,6 +19,17 @@ import (
 const testTime = "2018-08-02T21:48:56.856339554Z"
 
 type LogFunc func(string, ...interface{})
+
+func TestMain(m *testing.M) {
+	jlo.Now = func() time.Time {
+		t, err := time.Parse(time.RFC3339Nano, testTime)
+		if err != nil {
+			panic(err)
+		}
+		return t
+	}
+	os.Exit(m.Run())
+}
 
 func Test_SetLogLevel(t *testing.T) {
 	jlo.SetLogLevel(jlo.InfoLevel)
@@ -78,7 +90,6 @@ func Test_Logger_Debugf(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			l := jlo.NewLogger(buf)
-			l.Now = getTestTime
 			l.SetLogLevel(jlo.DebugLevel)
 
 			l.Debugf(test.String, test.Args...)
@@ -114,7 +125,6 @@ func Test_Logger_Infof(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			l := jlo.NewLogger(buf)
-			l.Now = getTestTime
 			l.SetLogLevel(jlo.InfoLevel)
 
 			l.Infof(test.String, test.Args...)
@@ -150,7 +160,6 @@ func Test_Logger_Warnf(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			l := jlo.NewLogger(buf)
-			l.Now = getTestTime
 			l.SetLogLevel(jlo.WarningLevel)
 
 			l.Warnf(test.String, test.Args...)
@@ -186,7 +195,6 @@ func Test_Logger_Errorf(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			l := jlo.NewLogger(buf)
-			l.Now = getTestTime
 			l.SetLogLevel(jlo.InfoLevel)
 
 			l.Errorf(test.String, test.Args...)
@@ -222,7 +230,6 @@ func Test_Logger_Fatalf(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			l := jlo.NewLogger(buf)
-			l.Now = getTestTime
 			l.SetLogLevel(jlo.FatalLevel)
 
 			l.Fatalf(test.String, test.Args...)
@@ -239,7 +246,6 @@ func Test_Logger_Fatalf(t *testing.T) {
 func Test_Logger_Infof_EnsureNewlineDelimitedJSON(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	l := jlo.NewLogger(buf)
-	l.Now = getTestTime
 	l.Infof("I'm real")
 	assert.True(t, strings.HasSuffix(buf.String(), "}\n"))
 }
@@ -297,7 +303,6 @@ func Test_Logger_Infof_SpecialCharacterUse(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			l := jlo.NewLogger(buf)
-			l.Now = getTestTime
 
 			l.Infof(test.String, test.Args...)
 
@@ -320,7 +325,6 @@ func Test_Logger_Infof_SpecialCharacterUse(t *testing.T) {
 func Test_Logger_WithField(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	l := jlo.NewLogger(buf)
-	l.Now = getTestTime
 	l.WithField("@request_id", "e44c2a9").
 		WithField("@version", 2.1).
 		WithField("@revision", 6).
@@ -349,7 +353,6 @@ func Test_Logger_WithField(t *testing.T) {
 func Test_Logger_WithField_EnsureNoChangeWhenIgnoringReturnValue(t *testing.T) {
 	buf := bytes.NewBuffer(nil)
 	l := jlo.NewLogger(buf)
-	l.Now = getTestTime
 	l.WithField("WithField", "will only be set in returned logger")
 	l.Infof("I'm real")
 
@@ -501,7 +504,6 @@ func Test_Logger_SetLogLevel(t *testing.T) {
 		t.Run(name, func(t *testing.T) {
 			buf := bytes.NewBuffer(nil)
 			l := jlo.NewLogger(buf)
-			l.Now = getTestTime
 			l.SetLogLevel(test.SetLogLevel)
 
 			test.GetLogFunc(l)("I'm real")
@@ -520,11 +522,6 @@ func Test_Logger_SetLogLevel(t *testing.T) {
 			}`, test.Message, test.LogLevel.String(), testTime), buf.String())
 		})
 	}
-}
-
-func getTestTime() time.Time {
-	t, _ := time.Parse(time.RFC3339Nano, testTime)
-	return t
 }
 
 const (
