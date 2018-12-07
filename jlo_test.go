@@ -11,11 +11,35 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const testTime = "2018-08-02T21:48:56.856339554Z"
 
 type LogFunc func(string, ...interface{})
+
+func Test_SetLogLevel(t *testing.T) {
+	SetLogLevel(InfoLevel)
+	buf := bytes.NewBuffer(nil)
+	infoLogger := NewLogger(buf)
+
+	infoLogger.Debugf("should not log")
+	assert.Empty(t, buf.String())
+
+	SetLogLevel(DebugLevel)
+
+	debugLogger := NewLogger(buf)
+	debugLogger.Debugf("should log")
+
+	var msg map[string]interface{}
+	err := json.NewDecoder(buf).Decode(&msg)
+	require.NoError(t, err)
+	assert.Equal(t, map[string]interface{}{
+		"@level":     "debug",
+		"@message":   "should log",
+		"@timestamp": msg["@timestamp"],
+	}, msg)
+}
 
 func Test_Logger_Debugf(t *testing.T) {
 

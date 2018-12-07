@@ -10,8 +10,34 @@ import (
 	"time"
 )
 
+const (
+	// FieldKeyLevel is the log level log field name
+	FieldKeyLevel = "@level"
+	// FieldKeyMsg is the log message log field name
+	FieldKeyMsg = "@message"
+	// FieldKeyTime is the time log field name
+	FieldKeyTime = "@timestamp"
+	// FieldKeyCommit is the commit log field name
+	FieldKeyCommit = "@commit"
+)
+
 // LogLevel represents a log level used by Logger type
 type LogLevel int
+
+const (
+	// UnknownLevel means the log level could not be parsed
+	UnknownLevel LogLevel = iota
+	// DebugLevel is the most verbose output and logs messages on all levels
+	DebugLevel
+	// InfoLevel logs messages on all levels except the DebugLevel
+	InfoLevel
+	// WarningLevel logs messages on all levels except DebugLevel and InfoLevel
+	WarningLevel
+	// ErrorLevel logs messages on ErrorLevel and FatalLevel
+	ErrorLevel
+	// FatalLevel logs messages on FatalLevel
+	FatalLevel
+)
 
 // String returns a string representation of the log level
 func (l LogLevel) String() string {
@@ -29,28 +55,13 @@ func (l LogLevel) String() string {
 	}
 }
 
-const (
-	// DebugLevel is the most verbose output and logs messages on all levels
-	DebugLevel LogLevel = iota
-	// InfoLevel logs messages on all levels except the DebugLevel
-	InfoLevel
-	// WarningLevel logs messages on all levels except DebugLevel and InfoLevel
-	WarningLevel
-	// ErrorLevel logs messages on ErrorLevel and FatalLevel
-	ErrorLevel
-	// FatalLevel logs messages on FatalLevel
-	FatalLevel
+// logLevel is used as initial value upon creation of a new logger
+var logLevel = InfoLevel
 
-	// FieldKeyLevel is the log level log field name
-	FieldKeyLevel = "@level"
-	// FieldKeyMsg is the log message log field name
-	FieldKeyMsg = "@message"
-	// FieldKeyTime is the time log field name
-	FieldKeyTime = "@timestamp"
-
-	// default log level used for initialization of global logger and all additional ones
-	defaultLogLevel = InfoLevel
-)
+// SetLogLevel changes the global log level
+func SetLogLevel(level LogLevel) {
+	logLevel = level
+}
 
 // Logger logs json formatted messages to a certain output destination
 type Logger struct {
@@ -65,8 +76,10 @@ type Logger struct {
 	out           io.Writer
 }
 
-// DefaultLogger is a default logger logging to stdout
-var DefaultLogger = NewLogger(os.Stdout)
+// DefaultLogger returns a new default logger logging to stdout
+func DefaultLogger() *Logger {
+	return NewLogger(os.Stdout)
+}
 
 // NewLogger creates a new logger which will write to the passed in io.Writer
 func NewLogger(out io.Writer) *Logger {
@@ -75,7 +88,7 @@ func NewLogger(out io.Writer) *Logger {
 		FieldKeyLevel: FieldKeyLevel,
 		FieldKeyTime:  FieldKeyTime,
 		fields:        make(map[string]interface{}),
-		logLevel:      defaultLogLevel,
+		logLevel:      logLevel,
 		now:           func() time.Time { return time.Now().UTC() },
 		out:           out,
 	}
