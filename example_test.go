@@ -13,7 +13,6 @@ func ExampleLogLevel_String() {
 	// Output: debug
 }
 
-// Create a new logger logging to stdout
 func ExampleNewLogger() {
 	l := jlo.NewLogger(os.Stdout)
 	l.FieldKeyLevel = "lvl"
@@ -24,7 +23,6 @@ func ExampleNewLogger() {
 	// Output: {"lvl":"info","msg":"I'm real","time":"2018-08-02T21:48:56.856339554Z"}
 }
 
-// Create a new logger logging to stdout
 func ExampleNewLogger_customFields() {
 	l := jlo.NewLogger(os.Stdout)
 
@@ -84,7 +82,7 @@ func ExampleLogger_WithField() {
 	// Output: {"@level":"info","@message":"I'm real","@request_id":"aa33ee55","@timestamp":"2018-08-02T21:48:56.856339554Z"}
 }
 
-func ExampleLogger_WithField_chaining() {
+func ExampleLogger_WithField_Chaining() {
 	l := jlo.NewLogger(os.Stdout)
 
 	l.WithField("@request_id", "aa33ee55").Infof("I'm real")
