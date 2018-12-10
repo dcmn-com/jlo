@@ -54,6 +54,34 @@ func Test_SetLogLevel(t *testing.T) {
 	}, msg)
 }
 
+func Test_ParseLogLevel(t *testing.T) {
+	tests := map[string]jlo.LogLevel{
+		"fatal":   jlo.FatalLevel,
+		"FATAL":   jlo.FatalLevel,
+		"error":   jlo.ErrorLevel,
+		"ERROR":   jlo.ErrorLevel,
+		"warn":    jlo.WarningLevel,
+		"WARN":    jlo.WarningLevel,
+		"warning": jlo.WarningLevel,
+		"WARNING": jlo.WarningLevel,
+		"info":    jlo.InfoLevel,
+		"INFO":    jlo.InfoLevel,
+		"debug":   jlo.DebugLevel,
+		"DEBUG":   jlo.DebugLevel,
+	}
+
+	for str, level := range tests {
+		parsed, err := jlo.ParseLogLevel(str)
+		require.NoError(t, err)
+		assert.Equal(t, level, parsed)
+	}
+}
+
+func Test_ParseLogLevel_UnknownLevel(t *testing.T) {
+	parsed, err := jlo.ParseLogLevel("unknown")
+	assert.Error(t, err)
+	assert.Equal(t, jlo.UnknownLevel, parsed)
+}
 func Test_Logger_Debugf(t *testing.T) {
 
 	tests := map[string]struct {

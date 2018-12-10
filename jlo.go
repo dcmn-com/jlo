@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"sync"
 	"time"
 )
@@ -61,6 +62,24 @@ var logLevel = InfoLevel
 // SetLogLevel changes the global log level
 func SetLogLevel(level LogLevel) {
 	logLevel = level
+}
+
+// ParseLogLevel parses a log level from a string
+func ParseLogLevel(level string) (LogLevel, error) {
+	switch strings.ToLower(level) {
+	case "fatal":
+		return FatalLevel, nil
+	case "error":
+		return ErrorLevel, nil
+	case "warn", "warning":
+		return WarningLevel, nil
+	case "info":
+		return InfoLevel, nil
+	case "debug":
+		return DebugLevel, nil
+	default:
+		return UnknownLevel, fmt.Errorf("invalid log level '%s'", level)
+	}
 }
 
 var Now = func() time.Time {
