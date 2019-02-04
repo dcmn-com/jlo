@@ -160,9 +160,8 @@ func (l *Logger) WithField(key string, value interface{}) *Logger {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
-	fields := Entry{
-		key: value,
-	}
+	fields := make(Entry, len(l.fields)+1)
+	fields[key] = value
 
 	for k, v := range l.fields {
 		fields[k] = v
@@ -195,11 +194,11 @@ func (l *Logger) generateLogEntry(level LogLevel, format string, args ...interfa
 		msg = format
 	}
 
-	data := Entry{
-		l.FieldKeyTime:  Now(),
-		l.FieldKeyLevel: level.String(),
-		l.FieldKeyMsg:   msg,
-	}
+	data := make(Entry, len(l.fields)+3)
+
+	data[l.FieldKeyTime] = Now()
+	data[l.FieldKeyLevel] = level.String()
+	data[l.FieldKeyMsg] = msg
 
 	for k, v := range l.fields {
 		data[k] = v
