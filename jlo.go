@@ -2,13 +2,16 @@
 package jlo
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"sync"
 	"time"
+
+	easyjson "github.com/mailru/easyjson"
 )
+
+//go:generate easyjson -no_std_marshalers $GOFILE
 
 const (
 	// FieldKeyLevel is the log level log field name
@@ -67,6 +70,7 @@ var Now = func() time.Time {
 	return time.Now().UTC()
 }
 
+//easyjson:json
 type Entry map[string]interface{}
 
 // Logger logs json formatted messages to a certain output destination
@@ -181,7 +185,7 @@ func (l *Logger) log(level LogLevel, format string, args ...interface{}) {
 	l.outMu.Lock()
 	defer l.outMu.Unlock()
 
-	l.out.Write(entry)
+	l.out.Write(append(entry, '\n'))
 }
 
 // generateLogEntry generates a log entry by gathering all field data and marshal
@@ -206,7 +210,6 @@ func (l *Logger) generateLogEntry(level LogLevel, format string, args ...interfa
 
 	// Error is ignored intentionally, as no errors are expected because the
 	// data type to be marshaled will never change.
-	entry, _ := json.Marshal(data)
-	entry = append(entry, '\n')
+	entry, _ := easyjson.Marshal(data)
 	return entry
 }
