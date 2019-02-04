@@ -27,6 +27,16 @@ const (
 // LogLevel represents a log level used by Logger type
 type LogLevel int
 
+func (lvl LogLevel) MarshalEasyJSON() ([]byte, error) {
+	s := lvl.String()
+	out := make([]byte, len(s)+2)
+
+	copy(out[1:len(out)-2], s[:])
+	out[0], out[len(out)-1] = '"', '"'
+
+	return out, nil
+}
+
 const (
 	// UnknownLevel means the log level could not be parsed
 	UnknownLevel LogLevel = iota
