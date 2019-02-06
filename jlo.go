@@ -2,13 +2,16 @@
 package jlo
 
 import (
-	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"sync"
 	"time"
+
+	easyjson "github.com/mailru/easyjson"
 )
+
+//go:generate easyjson -no_std_marshalers $GOFILE
 
 const (
 	// FieldKeyLevel is the log level log field name
@@ -23,6 +26,16 @@ const (
 
 // LogLevel represents a log level used by Logger type
 type LogLevel int
+
+func (lvl LogLevel) MarshalEasyJSON() ([]byte, error) {
+	s := lvl.String()
+	out := make([]byte, len(s)+2)
+
+	copy(out[1:len(out)-2], s[:])
+	out[0], out[len(out)-1] = '"', '"'
+
+	return out, nil
+}
 
 const (
 	// UnknownLevel means the log level could not be parsed
@@ -67,12 +80,15 @@ var Now = func() time.Time {
 	return time.Now().UTC()
 }
 
+//easyjson:json
+type Entry map[string]interface{}
+
 // Logger logs json formatted messages to a certain output destination
 type Logger struct {
 	FieldKeyMsg   string
 	FieldKeyLevel string
 	FieldKeyTime  string
-	fields        map[string]interface{}
+	fields        Entry
 	mu            sync.RWMutex
 	logLevel      LogLevel
 	outMu         sync.Mutex
@@ -90,7 +106,7 @@ func NewLogger(out io.Writer) *Logger {
 		FieldKeyMsg:   FieldKeyMsg,
 		FieldKeyLevel: FieldKeyLevel,
 		FieldKeyTime:  FieldKeyTime,
-		fields:        make(map[string]interface{}),
+		fields:        make(Entry),
 		logLevel:      logLevel,
 		out:           out,
 	}
@@ -158,9 +174,8 @@ func (l *Logger) WithField(key string, value interface{}) *Logger {
 	l.mu.RLock()
 	defer l.mu.RUnlock()
 
-	fields := map[string]interface{}{
-		key: value,
-	}
+	fields := make(Entry, len(l.fields)+1)
+	fields[key] = value
 
 	for k, v := range l.fields {
 		fields[k] = v
@@ -180,7 +195,7 @@ func (l *Logger) log(level LogLevel, format string, args ...interface{}) {
 	l.outMu.Lock()
 	defer l.outMu.Unlock()
 
-	l.out.Write(entry)
+	l.out.Write(append(entry, '\n'))
 }
 
 // generateLogEntry generates a log entry by gathering all field data and marshal
@@ -193,11 +208,11 @@ func (l *Logger) generateLogEntry(level LogLevel, format string, args ...interfa
 		msg = format
 	}
 
-	data := map[string]interface{}{
-		l.FieldKeyTime:  Now(),
-		l.FieldKeyLevel: level.String(),
-		l.FieldKeyMsg:   msg,
-	}
+	data := make(Entry, len(l.fields)+3)
+
+	data[l.FieldKeyTime] = Now()
+	data[l.FieldKeyLevel] = level.String()
+	data[l.FieldKeyMsg] = msg
 
 	for k, v := range l.fields {
 		data[k] = v
@@ -205,7 +220,6 @@ func (l *Logger) generateLogEntry(level LogLevel, format string, args ...interfa
 
 	// Error is ignored intentionally, as no errors are expected because the
 	// data type to be marshaled will never change.
-	entry, _ := json.Marshal(data)
-	entry = append(entry, '\n')
+	entry, _ := easyjson.Marshal(data)
 	return entry
 }
