@@ -29,3 +29,9 @@ l.Errorf("What you tryna to do to me?")
 {"@timestamp": "2018-08-17T13:24:08.856391733Z","@level":"error","@request_id":"aa33ee55","@message": "What you tryna to do to me?"}
 ...
 ```
+
+## Maintainers:
+
+- @dron22
+- @v47
+
