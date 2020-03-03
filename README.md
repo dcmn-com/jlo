@@ -35,6 +35,6 @@ l.Errorf("What you tryna to do to me?")
 
 ## Maintainers:
 
-- @dron22
-- @v47
+- [@dron22](https://github.com/dron22)
+- [@v47](https://github.com/v47)
 
