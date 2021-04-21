@@ -4,7 +4,10 @@ Light-weight json logging in go
 
 ![ ](https://media.giphy.com/media/l41lI61owQXsxHnvG/giphy.gif)
 
-- default log level: `INFO`
+- Default log level: `INFO`
+- Minimum go version/dependencies: See [go.mod](./go.mod)
+- Release versioning: Semantic versioning/`MAJOR.MINOR.PATCH`
+- Suggestions/problems: Please [create an issue](https://github.com/dcmn-com/jlo/issues/new)
 
 ## Usage
 
@@ -29,3 +32,9 @@ l.Errorf("What you tryna to do to me?")
 {"@timestamp": "2018-08-17T13:24:08.856391733Z","@level":"error","@request_id":"aa33ee55","@message": "What you tryna to do to me?"}
 ...
 ```
+
+## Maintainers:
+
+- [@dron22](https://github.com/dron22)
+- [@v47](https://github.com/v47)
+
