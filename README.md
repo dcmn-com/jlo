@@ -2,8 +2,6 @@
 
 Light-weight json logging in go
 
-![ ](https://media.giphy.com/media/l41lI61owQXsxHnvG/giphy.gif)
-
 - Default log level: `INFO`
 - Minimum go version/dependencies: See [go.mod](./go.mod)
 - Release versioning: Semantic versioning/`MAJOR.MINOR.PATCH`
